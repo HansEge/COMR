@@ -1,0 +1,72 @@
+#!/usr/bin/env python
+import rospy
+from geometry_msgs.msg import Twist
+from gazebo_msgs.msg import ModelStates
+
+def talker():
+	#Define a publisher node
+	pub = rospy.Publisher("husky_velocity_controller/cmd_vel", Twist, queue_size=1000)
+
+	#Let ROS master know the node
+	rospy.init_node("husky_command_generator", anonymous=True)
+
+	#Define publish rate
+	rate = rospy.Rate(10) #HZ
+
+	while not rospy.is_shutdown():
+		#Create a message
+		vel_msg = Twist()
+
+
+		# TODO calculate next frame
+
+		vel_msg.linear.x = 0.5
+		vel_msg.linear.y = 0
+		vel_msg.linear.z = 0
+		
+		vel_msg.angular.x = 0
+		vel_msg.angular.y = 0
+		vel_msg.angular.z = 0		
+
+		#debug
+		rospy.loginfo(vel_msg)
+
+		#Publish a message
+		pub.publish(vel_msg)
+
+		rate.sleep()
+
+
+def callback(data):
+	# Read x and y coordinate of robot given in data (gazebo/model_states).
+	# You can see the details of the ModelState type message: http://docs.ros.org/jade/api/gazebo_msgs/html/msg/ModelState.html. 
+
+	x = data.pose[1].position.x
+	y = data.pose[1].position.y
+
+	# Try yourself: Read the orientation, as well.
+	print(x,y) 
+
+
+
+def subscriber():
+	# Let's initialize the node first. Set the name to "basic_subscriber".	
+
+	rospy.init_node("basic_subscriber", anonymous=True)
+
+	# Create a subscriber to subscribe the topic of "gazebo/model_states". The type of "gazebo/model_states" is ModelStates.
+	# When we execute below line our node will subscribe to "gazebo/model_states" immediately. And It will call callback function when triggered with the arrival of new message.
+	modelstate_subscriber = rospy.Subscriber('gazebo/model_states',  ModelStates,  callback)
+
+	# This line keeps the subscriber() function alive until a user terminates using CTRL+X.
+
+	rospy.spin()
+​
+
+
+if __name__ =='__main__':
+	try:
+		talker()
+
+	except rospy.ROSInterruptException:
+		pass
